@@ -5,7 +5,8 @@ on:
     paths:
     - .github/workflows/pages.yml
     - README.md
-    - loader.html
+    - loader.luau
+    - .darklua.json5
     - github-markdown.css
 
 jobs:
@@ -14,13 +15,19 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: download
+    - name: process
       run: |
-        wget https://github.com/magiclen/markdown2html-converter/releases/latest/download/markdown2html-converter
+        wget https://github.com/magiclen/markdown2html-converter/releases/latest/download/markdown2html-converter & wget -O darklua-linux.zip https://gitlab.com/seaofvoices/darklua/uploads/1676420b7bdac9ff4ba261c5edf0ae2c/darklua-0.8.0-linux.zip
         chmod +x ./markdown2html-converter
+        unzip -o darklua-linux.zip
+        chmod +x ./darklua
         ./markdown2html-converter --no-safe --no-cjk-fonts -f --css-path ./github-markdown.css -t "Infinite Store" ./README.md -o ./index.html
-        cat loader.html >> index.html
+        echo "<!--]=]" >> index.html
+        ./darklua process loader.luau loader.min.luau
+        cat loader.min.luau >> index.html
+        echo "-->" >> index.html
         sed -i '1s/^/--\[\=[/' index.html
+        rm loader.min.luau darklua darklua-linux.zip markdown2html-converter
 
     - uses: peter-evans/create-pull-request@v4
       if: ${{ success() || failure() }}
