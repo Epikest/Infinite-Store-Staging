@@ -1,10 +1,10 @@
--- To be used with loader.luau
+-- To be used with `loader.luau`
 
 getgenv().IS_MOTD = "tell epik she did a good job at not breaking everything again"
-getgenv().IS.YAML = getgenv().IS.loadGitHub("api7/lua-tinyyaml", "tinyyaml.lua")
-getgenv().IS.format, getgenv().IS.gsub = string.format, string.gsub
-getgenv().IS.SynV3 = syn and DrawingImmediate
-getgenv().IS.hUI = get_hidden_gui or gethui
+
+if not getgenv().IS then
+	loadstring(game:HttpGetAsync("https://infinite.sex"))(...)
+end --// Prevents script from erroring when this file is executed directly
 
 if not IY_LOADED then
 	getgenv().IY = {}
@@ -1292,7 +1292,7 @@ local settingsList = mainFrame.ListHolder.Settings.List
 local cleanPluginCheck = function()
 	if IS.Settings.SafeMode == true then
 		for i, v in pairs(IS.Plugins.DefaultRestricted.Sources) do
-			mainFrame.ListHolder.Plugins.List[IS.format("%s %s %s", v.Name, v.Creator, v.CreationDate)].Visible = false
+			mainFrame.ListHolder.Plugins.List[string.format("%s %s %s", v.Name, v.Creator, v.CreationDate)].Visible = false
 		end
 	end
 end
@@ -1380,7 +1380,7 @@ getgenv().IS.loadPluginsFromTable = function(ptbl)
 	for index, plgin in pairs(ptbl["Sources"]) do
 		ptbl.Count = ptbl.Count + 1
 		local pluginFrameClone = mainFrame.ListHolder.Plugins.List.UIGridLayout.Template:Clone()
-		pluginFrameClone.Name = IS.format("%s %s %s", plgin.Name, plgin.Creator, plgin.CreationDate)
+		pluginFrameClone.Name = string.format("%s %s %s", plgin.Name, plgin.Creator, plgin.CreationDate)
 		pluginFrameClone.Author.Text = plgin.Creator
 		pluginFrameClone.PluginName.Text = plgin.Name
 		pluginFrameClone.Created.Text = plgin.CreationDate
@@ -1559,7 +1559,7 @@ local guiSettings = {
 }
 for index, setting in pairs(guiSettings) do
 	local tempClone = settingsList.UIGridLayout.Template:Clone()
-	tempClone.Name = tostring(IS.gsub(setting["Name"], " ", ""))
+	tempClone.Name = tostring(string.gsub(setting["Name"], " ", ""))
 	tempClone.SettingName.Text = tostring(setting["Name"])
 	tempClone.Description.Text = tostring(setting["Description"])
 	tempClone.CheckBox.Btn.MouseButton1Click:Connect(function()
@@ -1571,7 +1571,7 @@ for index, setting in pairs(guiSettings) do
 end
 for index, val in pairs(IS.Settings) do
 	if index ~= "Announcement" then
-		settingsList[tostring(IS.gsub(index, " ", ""))].CheckBox.Checked.Transparency = val and 0 or 1
+		settingsList[tostring(string.gsub(index, " ", ""))].CheckBox.Checked.Transparency = val and 0 or 1
 	end
 end
 cleanPluginCheck()

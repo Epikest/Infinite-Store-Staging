@@ -1,9 +1,9 @@
 body {
-	font-size:0 !important
+	font-size: 0 !important
 }
 
 article {
-	font-size:initial !important
+	font-size: initial !important
 }
 
 @media (prefers-color-scheme: dark) {

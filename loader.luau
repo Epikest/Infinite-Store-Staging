@@ -1,114 +1,93 @@
--- To be used with .github/workflows/pages.yml
+-- To be used with `.github/workflows/pages.yml`
 
 local args = ... or "" --// loadstring(loader.luau)(...)
 getgenv().IS = {}
 getgenv().IS.options = string.split(args, " ")
-getgenv().IS.getoption = function(option)
-	return not (not table.find(IS.options, option))
-end --// IS.getoption("dev") --> true
 
-setmetatable(getgenv(), {
-	__index = function(self, property)
-		local success, service = pcall(game.FindService, game, property)
-		if success then
-			self.property = cloneref and cloneref(service) or service
-			return service
-		end
-	end,
-}) --// Service:Method()
+getgenv().IS.YAML = getgenv().IS.loadGitHub("api7/lua-tinyyaml", "tinyyaml.lua")
+getgenv().IS.SynV3 = syn and DrawingImmediate
+getgenv().IS.hUI = get_hidden_gui or gethui
+
+for _, service in ipairs(game:GetChildren()) do
+	local success, result = pcall(function()
+		getgenv()[service.Name] = game:FindService(service.Name)
+	end)
+end --// Service:Method()
+
+getgenv().IS.validate = function(chunk)
+	local func, err = loadstring(chunk) --// Compile chunk and store return values
+	if not func then
+		warn(err)
+	end
+end --// IS.validate("print(true)") --> <void>
+
+getgenv().IS.validateLoad = function(chunk, ...)
+	local func, err = loadstring(chunk)
+	if not func then
+		warn(err)
+	else
+		return func(...) --// Execute chunk with provided varargs
+	end
+end --// IS.validateLoad("print(args)", "1", "2") --> 1, 2
 
 getgenv().IS.get = function(URL, nocache)
-	return game:HttpGetAsync(URL, nocache or false)
-end --// local file = IS.get("https://files.com/file")
+	local methods = {
+		["Load"] = function(self, ...)
+			loadstring(self())(...)
+		end
+	}
+	return setmetatable(methods, {
+		__call = function(self) 
+			return game:HttpGetAsync(URL, nocache or false)
+		end
+	})
+end --// IS.get("https://files.com/file"):Load(opts)
 
 getgenv().IS.getGitHub = function(repository, path, nocache)
 	local user, repo, branch = string.match(repository, "([^/]+)/([^@]+)@?(.*)")
+	--> "User/Repository?@branch"
+
 	assert(user and repo, "Invalid repository format")
 	assert(type(path) == "string", "The filepath must be a string")
+
+	-- Set local `branch` to GitHub default if <nil> or empty
 	if branch == "" or not branch then
 		branch = HttpService:JSONDecode(
 			game:HttpGetAsync("https://api.github.com/repos/" .. user .. "/" .. repo)
 		).default_branch
 	end
-	local Load = function(varargs)
-		loadstring(self)(varargs)
-	end
-	if nocache then
-		return{
-			function() game:HttpGetAsync(
-				"https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. path,
-				true
-			end),
-			["Load"] = Load
-		}
-	else
-		return{
-			function() game:HttpGetAsync(
-				"https://cdn.jsdelivr.net/gh/" .. user .. "/" .. repo .. "@" .. branch .. "/" .. path
-			end),
-			["Load"] = Load
-		}
+
+	-- Add methods to <string> here
+	local methods = {
+		["Load"] = function(self, ...)
+			loadstring(self())(...)
+		end
 	}
-	end
-end --// loadstring(IS.getGitHub("Epikest/something@main", "folder/file.luau", true))()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- pain
-getgenv().IS.getGitHub = function(repository, path, nocache)
-	local user, repo, branch = string.match(repository, "([^/]+)/([^@]+)@?(.*)")
-	assert(user and repo, "Invalid repository format")
-	assert(type(path) == "string", "The filepath must be a string")
-	if branch == "" or not branch then
-		branch = HttpService:JSONDecode(
-			game:HttpGetAsync("https://api.github.com/repos/" .. user .. "/" .. repo)
-		).default_branch
-	end
-	local Load = function(self)
-		loadstring(self.
-	end
 	if nocache then
-		return game:HttpGetAsync(
-			"https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. path,
-			true
-		)
+		return setmetatable(methods, {
+			__call = function(self) 
+				return game:HttpGetAsync(
+					"https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. path,
+					true
+				)
+			end
+		})
 	else
-		return game:HttpGetAsync(
-			"https://cdn.jsdelivr.net/gh/" .. user .. "/" .. repo .. "@" .. branch .. "/" .. path
-		)
-	}
+		return setmetatable(methods, {
+			__call = function(self)
+				return game:HttpGetAsync(
+					"https://cdn.jsdelivr.net/gh/" .. user .. "/" .. repo .. "@" .. branch .. "/" .. path
+				)
+			end
+		})
 	end
-end --// local file = IS.getGitHub("Epikest/something@main", "folder/file.luau", true)
+end --// IS.getGitHub("Epikest/something@main", "folder/file.luau", true):Load(opts)
 
-function IS.getGitHub(repository, path, nocache):Load(varargs)
-	return loadstring(IS.getGitHub(repository, path, nocache))(varargs)
-end --// IS.getGitHub("Epikest/something@main", "folder/file.luau", true):Load()
-
-
-
-
-
-
-
-
-
-
-
-
-
+getgenv().IS.getoption = function(option)
+	-- Convert table.find result to boolean
+	return not (not table.find(IS.options, option))
+end --// IS.getoption("dev") --> true
 
 getgenv().IS.switch = function(case, cases)
 	return (cases[case] and ((typeof(cases[case]) == "function" and cases[case]()) or cases[case]))
@@ -178,7 +157,7 @@ switch(IS.getoption("dev"), {
 					warn("Caching enabled")
 					IS.artNightly()
 				end
-				loadstring(IS.getGitHub("Infinite-Store", "Nightly-Store", "dev", "main.luau"))()
+				IS.getGitHub("Infinite-Store/Nightly-Store", "main.luau"):Load()
 			end,
 			[false] = function()
 				if isfile(".logservicedetected") then
@@ -198,7 +177,7 @@ switch(IS.getoption("dev"), {
 					warn("Caching disabled")
 					IS.artNightly()
 				end
-				loadstring(IS.getGitHub("Infinite-Store/Nightly-Store", "dev" "main.luau", true))()
+				IS.getGitHub("Infinite-Store/Nightly-Store" "main.luau", true):Load()
 			end,
 		})
 	end,
@@ -222,7 +201,7 @@ switch(IS.getoption("dev"), {
 					warn("Caching enabled")
 					IS.art()
 				end
-				IS.loadGitHub("Infinite-Store", "Infinite-Store", "main", "main.luau")
+				IS.getGitHub("Infinite-Store/Infinite-Store", "main.luau"):Load()
 			end,
 			[false] = function()
 				if isfile(".logservicedetected") then
@@ -242,7 +221,7 @@ switch(IS.getoption("dev"), {
 					warn("Caching disabled")
 					IS.art()
 				end
-				loadstring(IS.getGitHub("Infinite-Store/Infinite-Store", "main", "main.luau", true))()
+				IS.getGitHub("Infinite-Store/Infinite-Store", "main.luau", true):Load()
 			end,
 		})
 	end,
