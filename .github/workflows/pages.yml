@@ -21,7 +21,8 @@ jobs:
 
     - name: process
       run: |
-        wget https://github.com/magiclen/markdown2html-converter/releases/latest/download/markdown2html-converter & wget -O darklua-linux.zip https://gitlab.com/seaofvoices/darklua/uploads/1676420b7bdac9ff4ba261c5edf0ae2c/darklua-0.8.0-linux.zip
+        wget https://github.com/magiclen/markdown2html-converter/releases/latest/download/markdown2html-converter
+        wget -O darklua-linux.zip https://gitlab.com/seaofvoices/darklua/uploads/1676420b7bdac9ff4ba261c5edf0ae2c/darklua-0.8.0-linux.zip
         chmod +x ./markdown2html-converter
         unzip -o darklua-linux.zip
         chmod +x ./darklua
