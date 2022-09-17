@@ -42,21 +42,21 @@ jobs:
         title: Generate Pages from Markdown
         branch: generate-pages
         delete-branch: true
-  deploy:
+
+  publish:
     needs: convert
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Setup Pages
-        uses: actions/configure-pages@v2
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v1
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Publish to Cloudflare Pages
+      uses: cloudflare/pages-action@1
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: 780c3708c39b75d4747e8a0ecde4f94a
+        projectName: Infinite Store
+        directory: .
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
