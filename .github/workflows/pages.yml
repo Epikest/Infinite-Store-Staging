@@ -54,6 +54,6 @@ jobs:
       with:
         apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         accountId: 780c3708c39b75d4747e8a0ecde4f94a
-        projectName: Infinite Store
+        projectName: infinite-store
         directory: .
         gitHubToken: ${{ secrets.GITHUB_TOKEN }}
