@@ -180,7 +180,7 @@ switch(getoption("dev"), {
 					warn("Caching disabled")
 					art()
 				end
-				getGitHub("Infinite-Store/Nightly-Store" "main.luau", true):Load()
+				getGitHub("Infinite-Store/Nightly-Store", "main.luau", true):Load()
 			end,
 		})
 	end,
