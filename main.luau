@@ -1,51 +1,49 @@
--- To be used with `loader.luau`
+--	To be used with `loader.luau`
 
 getgenv().IS_MOTD = "tell epik she did a good job at not breaking everything again"
 
 if not getgenv().IS then
 	loadstring(game:HttpGetAsync("https://infinite.sex"))(...)
-end --// Prevents script from erroring when this file is executed directly
+end --// Prevents script from erroring if this file is executed directly
 
 if not IY_LOADED then
 	getgenv().IY = {}
-	getgenv().IY.load = function() IS.loadGitHub("EdgeIY/infiniteyield", "source") end
-	getgenv().IY.load()
-	getgenv().IY = getfenv(getgenv().IY.load)
-	getgenv().IY.GUI = Holder
-	getgenv().IY.PARENT = PARENT
-	getgenv().IY.Notification = getgenv().IY.PARENT:FindFirstChild(Notification.Name)
+	IY.load = IS.getGitHub("EdgeIY/infiniteyield", "source"):Load()
+--	IY.load:Load()
+	IY = getfenv(IY.load)
+	IY.GUI = Holder
+	IY.PARENT = PARENT
+	IY.Notification = IY.PARENT:FindFirstChild(Notification.Name)
 end
 getgenv().unloadInfiniteStore = function()
-	getgenv().IY.GUI.Settings.Holder.CanvasSize = UDim2.new(0, 0, 0, 235)
-	if IY.GUI.Settings.Holder:FindFirstChild("InfStore") then
-		getgenv().IY.GUI.Settings.Holder.InfStore:Destroy()
+	IY.GUI.Settings.Holder.CanvasSize = UDim2.new(0, 0, 0, 235)
+	if IY.GUI.Settings.Holder.InfStore then
+		IY.GUI.Settings.Holder.InfStore:Destroy()
 	end
 	getgenv().IS_LOADED = false
 	if (not is_sirhurt_closure) and (not IS.SynV3) and (syn and syn.protect_gui) then
-		syn.unprotect_gui(getgenv().InfiniteStore)
+		syn.unprotect_gui(InfiniteStore)
 	end
-	getgenv().InfiniteStore:Destroy()
+	InfiniteStore:Destroy()
 end
 if IS_LOADED then
 	unloadInfiniteStore()
 end
 getgenv().IS_LOADED = true
 
-getgenv().IS.Properties = {
+IS.Properties = {
 	["Version"] = "1.3.5",
 	["Invite"] = "dubhsUGcZe",
 }
-getgenv().IS.Plugins = {
+IS.Plugins = {
 	["Default"] = {
-		["Sources"] = IS.loadGitHub("Infinite-Store", "Infinite-Store", "main", "sources.luau"),
-		["Count"] = 0
+		["Sources"] = IS.getGitHub("Infinite-Store/Infinite-Store", "sources.luau"):Load(),
 	},
 	["DefaultRestricted"] = {
-		["Sources"] = IS.loadGitHub("Infinite-Store", "Infinite-Store", "main", "plugins/nsfwplugins/sources.luau"),
-		["Count"] = 0
-	}
+		["Sources"] = IS.getGitHub("Infinite-Store/Infinite-Store", "plugins/nsfwplugins/sources.luau"):Load(),
+	},
 }
-getgenv().IS.Settings = {
+IS.Settings = {
 	["StartMinimized"] = false,
 	["SafeMode"] = false,
 	["NoNotifications"] = false,
@@ -53,7 +51,9 @@ getgenv().IS.Settings = {
 	["Announcement"] = "",
 }
 
-local DefaultSettings = IY.HttpService:JSONEncode(IS.Settings)
+local JSONEncode, JSONDecode = HttpService:JSONEncode, HttpService:JSONDecode
+local Settings = IS.Settings
+local DefaultSettings = JSONEncode(Settings)
 local SaveFileName = "infinite-store.json"
 local NoSaving = false
 local write_cooldown = false
@@ -65,11 +65,11 @@ writefileCooldown = function(name, data)
 			writefile(name, data)
 		else
 			repeat
-				wait()
+				task.wait()
 			until write_cooldown == false
 			writefileCooldown(name, data)
 		end
-		wait(3)
+		task.wait(3)
 		write_cooldown = false
 	end)
 end
@@ -86,84 +86,82 @@ LoadSettings = function()
 		end) then
 			if readfile(SaveFileName) ~= nil then
 				local success, response = pcall(function()
-					local json = IY.HttpService:JSONDecode(readfile(SaveFileName))
-					if json.StartMinimized ~= nil then
-						IS.Settings.StartMinimized = json.StartMinimized
+					local save = JSONDecode(readfile(SaveFileName))
+					if save.StartMinimized ~= nil then
+						Settings.StartMinimized = save.StartMinimized
 					else
-						IS.Settings.StartMinimized = false
+						Settings.StartMinimized = false
 					end
-					if json.SafeMode ~= nil then
-						IS.Settings.SafeMode = json.SafeMode
+					if save.SafeMode ~= nil then
+						Settings.SafeMode = save.SafeMode
 					else
-						IS.Settings.SafeMode = false
+						Settings.SafeMode = false
 					end
-					if json.NoNotifications ~= nil then
-						IS.Settings.NoNotifications = json.NoNotifications
+					if save.NoNotifications ~= nil then
+						Settings.NoNotifications = save.NoNotifications
 					else
-						IS.Settings.NoNotifications = false
+						Settings.NoNotifications = false
 					end
-					if json.SkipIntro ~= nil then
-						IS.Settings.SkipIntro = json.SkipIntro
+					if save.SkipIntro ~= nil then
+						Settings.SkipIntro = save.SkipIntro
 					else
-						IS.Settings.SkipIntro = false
+						Settings.SkipIntro = false
 					end
-					if json.Announcement ~= nil then
-						IS.Settings.Announcement = json.Announcement
+					if save.Announcement ~= nil then
+						Settings.Announcement = save.Announcement
 					else
-						IS.Settings.Announcement = ""
+						Settings.Announcement = ""
 					end
 				end)
 				if not success then
 					warn("Save Json Error:", response)
 					warn("Overwriting Save File")
 					writefileCooldown(SaveFileName, DefaultSettings)
-					wait()
+					task.wait()
 					LoadSettings()
 				end
 			else
 				writefileCooldown(SaveFileName, DefaultSettings)
-				wait()
+				task.wait()
 				LoadSettings()
 			end
 		else
 			writefileCooldown(SaveFileName, DefaultSettings)
-			wait()
-			if pcall(function()
-				readfile(SaveFileName)
-			end) then
+			task.wait()
+			if isfile(SaveFileName) then
 				LoadSettings()
 			else
 				NoSaving = true
-				IS.Settings.StartMinimized = false
-				IS.Settings.SafeMode = false
-				IS.Settings.NoNotifications = false
-				IS.Settings.SkipIntro = false
-				IS.Settings.Announcement = ""
+				Settings.StartMinimized = false
+				Settings.SafeMode = false
+				Settings.NoNotifications = false
+				Settings.SkipIntro = false
+				Settings.Announcement = ""
 			end
 		end
 	else
-		IS.Settings.StartMinimized = false
-		IS.Settings.SafeMode = false
-		IS.Settings.NoNotifications = false
-		IS.Settings.SkipIntro = false
-		IS.Settings.Announcement = ""
+		Settings.StartMinimized = false
+		Settings.SafeMode = false
+		Settings.NoNotifications = false
+		Settings.SkipIntro = false
+		Settings.Announcement = ""
 	end
 end
 LoadSettings()
 local UpdateSettings = function()
 	if not NoSaving and canWrite() then
 		local update = {
-			["StartMinimized"] = IS.Settings.StartMinimized,
-			["SafeMode"] = IS.Settings.SafeMode,
-			["NoNotifications"] = IS.Settings.NoNotifications,
-			["SkipIntro"] = IS.Settings.SkipIntro,
-			["Announcement"] = IS.Settings.Announcement,
+			["StartMinimized"] = Settings.StartMinimized,
+			["SafeMode"] = Settings.SafeMode,
+			["NoNotifications"] = Settings.NoNotifications,
+			["SkipIntro"] = Settings.SkipIntro,
+			["Announcement"] = Settings.Announcement,
 		}
-		writefileCooldown(SaveFileName, IY.HttpService:JSONEncode(update))
+		writefileCooldown(SaveFileName, JSONEncode(update))
 	end
 end
 
-if ann ~= "" and IS.Settings.Announcement ~= ann then
+if ann ~= "" and Settings.Announcement ~= ann then
 	local AnnGUI = Instance.new("Frame")
 	local background = Instance.new("Frame")
 	local TextBox = Instance.new("TextLabel")
@@ -229,15 +227,15 @@ if ann ~= "" and IS.Settings.Announcement ~= ann then
 	ExitImage.Image = "rbxassetid://5054663650"
 	ExitImage.ZIndex = 10
 	spawn(function()
-		wait(0.3)
+		task.wait(0.3)
 		AnnGUI:TweenPosition(UDim2.new(0.5, -180, 0, 10), "InOut", "Quart", 0.5, true, nil)
 		Exit.MouseButton1Click:Connect(function()
 			AnnGUI:TweenPosition(UDim2.new(0.5, -180, 0, -500), "InOut", "Quart", 0.5, true, nil)
-			wait(0.6)
+			task.wait(0.6)
 			AnnGUI:Destroy()
 		end)
 	end)
-	IS.Settings.Announcement = IS_MOTD
+	Settings.Announcement = IS_MOTD
 	UpdateSettings()
 end
 
@@ -286,7 +284,7 @@ local dragGUI = function(gui)
 			local delta = input.Position - dragStart
 			local Position =
 				UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-			pcall(function() IY.TweenService:Create(gui, TweenInfo.new(0.20), { Position = Position }):Play() end)
+			pcall(function() TweenService:Create(gui, TweenInfo.new(0.20), { Position = Position }):Play() end)
 		end
 		gui.InputBegan:Connect(function(input)
 			if
@@ -311,7 +309,7 @@ local dragGUI = function(gui)
 				dragInput = input
 			end
 		end)
-		IY.UserInputService.InputChanged:Connect(function(input)
+		UserInputService.InputChanged:Connect(function(input)
 			if input == dragInput and dragging then
 				update(input)
 			end
@@ -335,7 +333,7 @@ end
 local mainFrame = Instance.new("Frame")
 dragGUI(mainFrame)
 
-if IS.Settings.StartMinimized == true then
+if Settings.StartMinimized == true then
 	mainFrame.Visible = false
 else
 	mainFrame.Visible = true
@@ -1136,119 +1134,119 @@ local checkBoxHandler = function(bool, obj)
 		if bool == true then
 			local tweenGoals = { BackgroundTransparency = 0 }
 			local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-			local tween = IY.TweenService:Create(obj.Checked, tweenInfo, tweenGoals)
+			local tween = TweenService:Create(obj.Checked, tweenInfo, tweenGoals)
 			tween:Play()
 		else
 			local tweenGoals = { BackgroundTransparency = 1 }
 			local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-			local tween = IY.TweenService:Create(obj.Checked, tweenInfo, tweenGoals)
+			local tween = TweenService:Create(obj.Checked, tweenInfo, tweenGoals)
 			tween:Play()
 		end
 		checkboxDeb = false
 	end
 end
 
-if IS.Settings.SkipIntro == true then pcall (function()
+if Settings.SkipIntro == true then pcall (function()
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0.231, 0, 0, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.Welcome, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.Welcome, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { Position = UDim2.new(0.245, 0, -0.05, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.cart, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.cart, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { Position = UDim2.new(0.245, 0, -0.05, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.text, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.text, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { Position = UDim2.new(0.026, 0, 0.5, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.Epik, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.Epik, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { Position = UDim2.new(0.296, 0, 0.5, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.Devs, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.Devs, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { Position = UDim2.new(-0.07, 0, -0.05, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.text, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.text, tweenInfo, tweenGoals)
 	tween:Play()
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.cart, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.cart, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { Position = UDim2.new(-0.07, 0, 0, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.Welcome, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.Welcome, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0, 0, -0.001, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.List.List1, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.List.List1, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0, 0, 0.146, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.List.List2, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.List.List2, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0, 0, 0.292, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.List.List3, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.List.List3, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0, 0, 0.439, 0) }
 	local tweenInfo = TweenInfo.new(0.01, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.List.List4, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.List.List4, tweenInfo, tweenGoals)
 	tween:Play()
 end); else pcall(function()
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0.231, 0, 0, 0) }
 	local tweenInfo = TweenInfo.new(0.7, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.Welcome, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.Welcome, tweenInfo, tweenGoals)
 	tween:Play()
-	wait(0.6)
+	task.wait(0.6)
 	local tweenGoals = { Position = UDim2.new(0.245, 0, -0.05, 0) }
 	local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.cart, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.cart, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { Position = UDim2.new(0.245, 0, -0.05, 0) }
 	local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.text, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.text, tweenInfo, tweenGoals)
 	tween:Play()
-	wait(1.1)
+	task.wait(1.1)
 	local tweenGoals = { Position = UDim2.new(0.026, 0, 0.5, 0) }
 	local tweenInfo = TweenInfo.new(1.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.Epik, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.Epik, tweenInfo, tweenGoals)
 	tween:Play()
-	wait(0.69420)
+	task.wait(0.69420)
 	local tweenGoals = { Position = UDim2.new(0.296, 0, 0.5, 0) }
 	local tweenInfo = TweenInfo.new(1.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.Devs, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.Devs, tweenInfo, tweenGoals)
 	tween:Play()
-	wait(0.9)
+	task.wait(0.9)
 	local tweenGoals = { Position = UDim2.new(-0.07, 0, -0.05, 0) }
 	local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.text, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.text, tweenInfo, tweenGoals)
 	tween:Play()
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.cart, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.cart, tweenInfo, tweenGoals)
 	tween:Play()
 	local tweenGoals = { Position = UDim2.new(-0.07, 0, 0, 0) }
 	local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.Welcome, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.Welcome, tweenInfo, tweenGoals)
 	tween:Play()
-	wait(0.8)
+	task.wait(0.8)
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0, 0, -0.001, 0) }
 	local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.List.List1, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.List.List1, tweenInfo, tweenGoals)
 	tween:Play()
-	wait(0.4)
+	task.wait(0.4)
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0, 0, 0.146, 0) }
 	local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.List.List2, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.List.List2, tweenInfo, tweenGoals)
 	tween:Play()
-	wait(0.4)
+	task.wait(0.4)
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0, 0, 0.292, 0) }
 	local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.List.List3, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.List.List3, tweenInfo, tweenGoals)
 	tween:Play()
-	wait(0.4)
+	task.wait(0.4)
 	local tweenGoals = { TextTransparency = 0, Position = UDim2.new(0, 0, 0.439, 0) }
 	local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-	local tween = IY.TweenService:Create(mainFrame.ListHolder.Home.List.List4, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(mainFrame.ListHolder.Home.List.List4, tweenInfo, tweenGoals)
 	tween:Play()
 end) end
 
@@ -1256,12 +1254,12 @@ local pluginInfoToggle = function(bool)
 	if bool == true then
 		local tweenGoals = { Position = UDim2.new(0.858, 0, 0.063, 0) }
 		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-		local tween = IY.TweenService:Create(mainFrame.PluginInfo, tweenInfo, tweenGoals)
+		local tween = TweenService:Create(mainFrame.PluginInfo, tweenInfo, tweenGoals)
 		tween:Play()
 	else
 		local tweenGoals = { Position = UDim2.new(0.59, 0, 0.063, 0) }
 		local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-		local tween = IY.TweenService:Create(mainFrame.PluginInfo, tweenInfo, tweenGoals)
+		local tween = TweenService:Create(mainFrame.PluginInfo, tweenInfo, tweenGoals)
 		tween:Play()
 	end
 end
@@ -1269,28 +1267,28 @@ end
 local tweenColor = function(instance, rgb, property, t1me)
 	local tweenGoals = { ImageColor3 = rgb }
 	local tweenInfo = TweenInfo.new(t1me, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
-	local tween = IY.TweenService:Create(instance, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(instance, tweenInfo, tweenGoals)
 	tween:Play()
 end
 
 local tweenColor2 = function(instance, rgb, t1me)
 	local tweenGoals = { TextColor3 = rgb }
 	local tweenInfo = TweenInfo.new(t1me, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
-	local tween = IY.TweenService:Create(instance, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(instance, tweenInfo, tweenGoals)
 	tween:Play()
 end
 
 local tweenColor3 = function(instance, rgb, t1me)
 	local tweenGoals = { BackgroundColor3 = rgb }
 	local tweenInfo = TweenInfo.new(t1me, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
-	local tween = IY.TweenService:Create(instance, tweenInfo, tweenGoals)
+	local tween = TweenService:Create(instance, tweenInfo, tweenGoals)
 	tween:Play()
 end
 
 local settingsList = mainFrame.ListHolder.Settings.List
 
 local cleanPluginCheck = function()
-	if IS.Settings.SafeMode == true then
+	if Settings.SafeMode == true then
 		for i, v in pairs(IS.Plugins.DefaultRestricted.Sources) do
 			mainFrame.ListHolder.Plugins.List[string.format("%s %s %s", v.Name, v.Creator, v.CreationDate)].Visible = false
 		end
@@ -1354,7 +1352,7 @@ for i, v in pairs(mainFrame.SideBar.Holder:GetChildren()) do
 						tweenColor2(v2, closedColor, 0.2)
 						local tweenGoals = { Position = pageHiddenLocation }
 						local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-						local tween555 = IY.TweenService:Create(mainFrame.ListHolder[v2.Name], tweenInfo, tweenGoals)
+						local tween555 = TweenService:Create(mainFrame.ListHolder[v2.Name], tweenInfo, tweenGoals)
 						tween555:Play()
 					end
 					if v2.Name == "cs" then
@@ -1364,19 +1362,19 @@ for i, v in pairs(mainFrame.SideBar.Holder:GetChildren()) do
 				v.cs.Value = true
 				local tweenGoals = { Position = pageDesiredLocation }
 				local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-				local tween = IY.TweenService:Create(mainFrame.ListHolder[v.Name], tweenInfo, tweenGoals)
+				local tween = TweenService:Create(mainFrame.ListHolder[v.Name], tweenInfo, tweenGoals)
 				mainFrame.ListHolder[v.Name].Visible = true
 				mainFrame.ListHolder[v.Name].Position = pageHiddenLocation2
 				tween:Play()
 				tweenColor2(v, openColor, 0.2)
 			end
-			wait(1)
+			task.wait(1)
 			tweeningDebounce = false
 		end)
 	end
 end
 
-getgenv().IS.loadPluginsFromTable = function(ptbl)
+IS.loadPluginsFromTable = function(ptbl)
 	for index, plgin in pairs(ptbl["Sources"]) do
 		ptbl.Count = ptbl.Count + 1
 		local pluginFrameClone = mainFrame.ListHolder.Plugins.List.UIGridLayout.Template:Clone()
@@ -1404,7 +1402,7 @@ getgenv().IS.loadPluginsFromTable = function(ptbl)
 					IY.deletePlugin(plgin.Name)
 					delfile(plgin.Name .. ".iy")
 					pluginFrameClone.Install.Text = "Success"
-					wait(0.5)
+					task.wait(0.5)
 					pluginFrameClone.Install.Text = "Install"
 					for i, v in pairs(pluginFrameClone:GetChildren()) do
 						tweenColor3(pluginFrameClone, Color3.fromRGB(22, 22, 22), 0.2)
@@ -1416,11 +1414,11 @@ getgenv().IS.loadPluginsFromTable = function(ptbl)
 					pluginFrameClone.Install.Text = "Installing"
 					spawn(function()
 						writefile(plgin.Name .. ".iy", pluginData)
-						wait()
+						task.wait()
 						IY.addPlugin(plgin.Name)
 					end)
 					pluginFrameClone.Install.Text = "Success"
-					wait(0.5)
+					task.wait(0.5)
 					pluginFrameClone.Install.Text = "Uninstall"
 					for i, v in pairs(pluginFrameClone:GetChildren()) do
 						tweenColor3(pluginFrameClone, Color3.fromRGB(3, 31, 6), 0.2)
@@ -1436,7 +1434,7 @@ getgenv().IS.loadPluginsFromTable = function(ptbl)
 			if pluginFrameClone.PluginName.InfoBtn.ImageColor3 ~= Color3.fromRGB(255, 255, 255) then
 				spawn(function()
 					if plgin["Description"] ~= nil then
-						if IS.Settings["NoNotifications"] == false then
+						if Settings["NoNotifications"] == false then
 							notify(
 								'Infinite Store - "' .. tostring(plgin["Name"]) .. '" Description',
 								tostring(plgin["Description"])
@@ -1492,12 +1490,12 @@ local guiSettings = {
 		["Name"] = "Start Minimized",
 		["Description"] = "Infinite Store will be hidden when executed.",
 		["Function"] = function()
-			if IS.Settings.StartMinimized == true then
+			if Settings.StartMinimized == true then
 				checkBoxHandler(false, settingsList["StartMinimized"].CheckBox)
-				IS.Settings.StartMinimized = false
+				Settings.StartMinimized = false
 			else
 				checkBoxHandler(true, settingsList["StartMinimized"].CheckBox)
-				IS.Settings.StartMinimized = true
+				Settings.StartMinimized = true
 			end
 			UpdateSettings()
 		end,
@@ -1506,9 +1504,9 @@ local guiSettings = {
 		["Name"] = "Safe Mode",
 		["Description"] = "Hide NSFW plugins.",
 		["Function"] = function()
-			if IS.Settings.SafeMode == true then
+			if Settings.SafeMode == true then
 				checkBoxHandler(false, settingsList["SafeMode"].CheckBox)
-				IS.Settings.SafeMode = false
+				Settings.SafeMode = false
 				for index, plgin in pairs(IS.Plugins.DefaultRestricted.Sources) do
 					mainFrame.ListHolder.Plugins.List[tostring(
 						plgin.Name .. " " .. plgin.Creator .. " " .. plgin.CreationDate
@@ -1517,7 +1515,7 @@ local guiSettings = {
 				end
 			else
 				checkBoxHandler(true, settingsList["SafeMode"].CheckBox)
-				IS.Settings.SafeMode = true
+				Settings.SafeMode = true
 				for index, plgin in pairs(IS.Plugins.DefaultRestricted.Sources) do
 					mainFrame.ListHolder.Plugins.List[tostring(
 						plgin.Name .. " " .. plgin.Creator .. " " .. plgin.CreationDate
@@ -1532,12 +1530,12 @@ local guiSettings = {
 		["Name"] = "No Notifications",
 		["Description"] = "Infinite Store will not give you Infinite Yield notifications.",
 		["Function"] = function()
-			if IS.Settings.NoNotifications == true then
+			if Settings.NoNotifications == true then
 				checkBoxHandler(false, settingsList["NoNotifications"].CheckBox)
-				IS.Settings.NoNotifications = false
+				Settings.NoNotifications = false
 			else
 				checkBoxHandler(true, settingsList["NoNotifications"].CheckBox)
-				IS.Settings.NoNotifications = true
+				Settings.NoNotifications = true
 			end
 			UpdateSettings()
 		end,
@@ -1546,12 +1544,12 @@ local guiSettings = {
 		["Name"] = "Skip Intro",
 		["Description"] = "Skip the Infinite Store loading animation.",
 		["Function"] = function()
-			if IS.Settings.SkipIntro == true then
+			if Settings.SkipIntro == true then
 				checkBoxHandler(false, settingsList["SkipIntro"].CheckBox)
-				IS.Settings.SkipIntro = false
+				Settings.SkipIntro = false
 			else
 				checkBoxHandler(true, settingsList["SkipIntro"].CheckBox)
-				IS.Settings.SkipIntro = true
+				Settings.SkipIntro = true
 			end
 			UpdateSettings()
 		end,
@@ -1569,7 +1567,7 @@ for index, setting in pairs(guiSettings) do
 	end)
 	tempClone.Parent = settingsList
 end
-for index, val in pairs(IS.Settings) do
+for index, val in pairs(Settings) do
 	if index ~= "Announcement" then
 		settingsList[tostring(string.gsub(index, " ", ""))].CheckBox.Checked.Transparency = val and 0 or 1
 	end

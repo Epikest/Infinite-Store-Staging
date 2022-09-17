@@ -1,4 +1,4 @@
--- To be used with `.github/workflows/pages.yml`
+--	To be used with `.github/workflows/pages.yml`
 
 local args = ... or "" --// loadstring(loader.luau)(...)
 getgenv().IS = {}
@@ -18,8 +18,10 @@ getgenv().IS.validate = function(chunk)
 	local func, err = loadstring(chunk) --// Compile chunk and store return values
 	if not func then
 		warn(err)
+	else
+		return true
 	end
-end --// IS.validate("print(true)") --> <void>
+end --// IS.validate("print(1)") --> true
 
 getgenv().IS.validateLoad = function(chunk, ...)
 	local func, err = loadstring(chunk)
@@ -66,7 +68,7 @@ getgenv().IS.getGitHub = function(repository, path, nocache)
 
 	if nocache then
 		return setmetatable(methods, {
-			__call = function(self) 
+			["__call"] = function(self) 
 				return game:HttpGetAsync(
 					"https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. path,
 					true
@@ -75,7 +77,7 @@ getgenv().IS.getGitHub = function(repository, path, nocache)
 		})
 	else
 		return setmetatable(methods, {
-			__call = function(self)
+			["__call"] = function(self)
 				return game:HttpGetAsync(
 					"https://cdn.jsdelivr.net/gh/" .. user .. "/" .. repo .. "@" .. branch .. "/" .. path
 				)
@@ -95,28 +97,12 @@ getgenv().IS.switch = function(case, cases)
 		or cases[default]
 end --// IS.switch(func(), {[true] = "a", [something] = "b", [default] = "c"})
 
-getgenv().IS.art = function()
-	print([[\n
-^!!~~^.                                                                                                
-.:^^!??:  .                         ~7. ^?^       !7. ~JJJJJ?: ^?: :?~       ~?: :?^.7JJJJJJJ7.^JJJJJJ~
-	.!J~.^77!!~~^::...             .YB^ 7#BJ:    .5G: ?#?~~~^. ?#~ ~#BY^    .JB^ !#7.^~~J#J~~^.?#?~~~~:
-	.~J~. .::^~~!!7777!!~~^^::..   .YG^ !BJYP?:  .5G: ?B~      ?B~ ~BYJPJ:  .JB^ !B7    !B!    ?B!.... 
-	 ^?!.          ..::^^~!!!777!. .YG^ !#! ^YP7..5G: ?#5YYY^  ?B~ ~B?.^YP?:.JB^ !B7    !B!    ?#PYYY7.
-	 :?7.                    .~?7: .YG^ !#!   ~5P7PG: ?B!:::.  ?B~ ~B?   ~5P?YB^ !B7    !B!    ?B~     
-	 :77:                   .~?!:  .YB^ !#!    .!P#G: ?#~      ?#~ ~#?     ~5BB^ !#7    !#7    ?#7^^^^:
-	 .!?^                  ^77^.    !?. ^J^      .!?. ~J:      ~?: :J~      .!J: :J^    ^J^    ^YJJJJJ7
-	 .!?7!~^^::..        .!?!:                    ^777~..!7!!!!!!~.  :~777!~.    .~!!!^    ~!!!!!!.    
-	  ^?7!~!!!!77!!!~~^^~77^                    :5P?77J!:!7?5#Y?7!.~Y5J777?YPJ:  !#5?J55~ :GG?7777.    
-	  .~77!!!~~~~^~~~~!!!~.                     ~#Y:        7B~   7BJ:      ^5G~ !B!  ^B5.:G5.         
-	 :~7777!~~~!!!!!!!~:                        .!Y5YJ!.    7B!  :G5.        ^BY.!BJ~!YG7 :GBYYYJ^     
-	.7?^.^77:    .:~7??!.                          .^7PP^   7B!  :5G^        !B?.!BBBP7:  :G5^:::.     
-	.~?!~!?!.    .~?!^~77:                      ^~:. :YB~   7#!   ^5P7:....^JGJ. !#?755~. :G5:....     
-	  :^~^:      .!?~^^77:                      ~Y5YY5Y~    !P^    .~JYYYYYY?^   ~P~ .757.:YPYYYYY^    
-				  .^~!!~.                         .::.                 .::.             .   ......     
-\n]])
-end
-getgenv().IS.artNightly = function()
-	print([[\n
+getgenv().IS.art = setmetatable({}, {
+	["__call"] = function()
+		print("\n" .. IS.art.text)
+	end
+}
+getgenv().IS.art.text = IS.getoption("dev") and [[
 ^!!~~^.                                                                                                
 .:^^!??:  .                         ~7. ^?^       !7. ~JJJJJ?: ^?: :?~       ~?: :?^.7JJJJJJJ7.^JJJJJJ~
 	.!J~.^77!!~~^::...             .YB^ 7#BJ:    .5G: ?#?~~~^. ?#~ ~#BY^    .JB^ !#7.^~~J#J~~^.?#?~~~~:
@@ -133,95 +119,112 @@ getgenv().IS.artNightly = function()
 	.~?!~!?!.    .~?!^~77:                      ^~:. :YB~   7#!   ^5P7:....^JGJ. !#?755~. :G5:....   L 
 	  :^~^:      .!?~^^77:                      ~Y5YY5Y~    !P^    .~JYYYYYY?^   ~P~ .757.:YPYYYYY^  Y 
 				  .^~!!~.                         .::.                 .::.             .   ......   ! 
-\n]])
-end
+]] or [[
+^!!~~^.                                                                                                
+.:^^!??:  .                         ~7. ^?^       !7. ~JJJJJ?: ^?: :?~       ~?: :?^.7JJJJJJJ7.^JJJJJJ~
+	.!J~.^77!!~~^::...             .YB^ 7#BJ:    .5G: ?#?~~~^. ?#~ ~#BY^    .JB^ !#7.^~~J#J~~^.?#?~~~~:
+	.~J~. .::^~~!!7777!!~~^^::..   .YG^ !BJYP?:  .5G: ?B~      ?B~ ~BYJPJ:  .JB^ !B7    !B!    ?B!.... 
+	 ^?!.          ..::^^~!!!777!. .YG^ !#! ^YP7..5G: ?#5YYY^  ?B~ ~B?.^YP?:.JB^ !B7    !B!    ?#PYYY7.
+	 :?7.                    .~?7: .YG^ !#!   ~5P7PG: ?B!:::.  ?B~ ~B?   ~5P?YB^ !B7    !B!    ?B~     
+	 :77:                   .~?!:  .YB^ !#!    .!P#G: ?#~      ?#~ ~#?     ~5BB^ !#7    !#7    ?#7^^^^:
+	 .!?^                  ^77^.    !?. ^J^      .!?. ~J:      ~?: :J~      .!J: :J^    ^J^    ^YJJJJJ7
+	 .!?7!~^^::..        .!?!:                    ^777~..!7!!!!!!~.  :~777!~.    .~!!!^    ~!!!!!!.    
+	  ^?7!~!!!!77!!!~~^^~77^                    :5P?77J!:!7?5#Y?7!.~Y5J777?YPJ:  !#5?J55~ :GG?7777.    
+	  .~77!!!~~~~^~~~~!!!~.                     ~#Y:        7B~   7BJ:      ^5G~ !B!  ^B5.:G5.         
+	 :~7777!~~~!!!!!!!~:                        .!Y5YJ!.    7B!  :G5.        ^BY.!BJ~!YG7 :GBYYYJ^     
+	.7?^.^77:    .:~7??!.                          .^7PP^   7B!  :5G^        !B?.!BBBP7:  :G5^:::.     
+	.~?!~!?!.    .~?!^~77:                      ^~:. :YB~   7#!   ^5P7:....^JGJ. !#?755~. :G5:....     
+	  :^~^:      .!?~^^77:                      ~Y5YY5Y~    !P^    .~JYYYYYY?^   ~P~ .757.:YPYYYYY^    
+				  .^~!!~.                         .::.                 .::.             .   ......     
+]]
 
-switch(IS.getoption("dev"), {
+local switch, getoption, art, getGitHub = IS.switch, IS.getoption, IS.art, IS.getGitHub
+switch(getoption("dev"), {
 	[true] = function()
-		switch(IS.getoption("cache"), {
+		switch(getoption("cache"), {
 			[true] = function()
 				if isfile(".logservicedetected") then
-					switch(IS.getoption("forcelog"), {
+					switch(getoption("forcelog"), {
 						[true] = function()
 							warn("Logging enforced")
 							warn("Caching enabled")
-							IS.artNightly()
+							art()
 						end,
 					})
 				else
-					switch(IS.getoption("forcelog"), {
+					switch(getoption("forcelog"), {
 						[true] = function()
 							warn("Logging enforced")
 						end,
 					})
 					warn("Caching enabled")
-					IS.artNightly()
+					art()
 				end
-				IS.getGitHub("Infinite-Store/Nightly-Store", "main.luau"):Load()
+				getGitHub("Infinite-Store/Nightly-Store", "main.luau"):Load()
 			end,
 			[false] = function()
 				if isfile(".logservicedetected") then
-					switch(IS.getoption("forcelog"), {
+					switch(getoption("forcelog"), {
 						[true] = function()
 							warn("Logging enforced")
 							warn("Caching disabled")
-							IS.artNightly()
+							art()
 						end,
 					})
 				else
-					switch(IS.getoption("forcelog"), {
+					switch(getoption("forcelog"), {
 						[true] = function()
 							warn("Logging enforced")
 						end,
 					})
 					warn("Caching disabled")
-					IS.artNightly()
+					art()
 				end
-				IS.getGitHub("Infinite-Store/Nightly-Store" "main.luau", true):Load()
+				getGitHub("Infinite-Store/Nightly-Store" "main.luau", true):Load()
 			end,
 		})
 	end,
 	[false] = function()
-		switch(IS.getoption("cache"), {
+		switch(getoption("cache"), {
 			[true] = function()
 				if isfile(".logservicedetected") then
-					switch(IS.getoption("forcelog"), {
+					switch(getoption("forcelog"), {
 						[true] = function()
 							warn("Logging enforced")
 							warn("Caching enabled")
-							IS.art()
+							art()
 						end,
 					})
 				else
-					switch(IS.getoption("forcelog"), {
+					switch(getoption("forcelog"), {
 						[true] = function()
 							warn("Logging enforced")
 						end,
 					})
 					warn("Caching enabled")
-					IS.art()
+					art()
 				end
-				IS.getGitHub("Infinite-Store/Infinite-Store", "main.luau"):Load()
+				getGitHub("Infinite-Store/Infinite-Store", "main.luau"):Load()
 			end,
 			[false] = function()
 				if isfile(".logservicedetected") then
-					switch(IS.getoption("forcelog"), {
+					switch(getoption("forcelog"), {
 						[true] = function()
 							warn("Logging enforced")
 							warn("Caching disabled")
-							IS.art()
+							art()
 						end,
 					})
 				else
-					switch(IS.getoption("forcelog"), {
+					switch(getoption("forcelog"), {
 						[true] = function()
 							warn("Logging enforced")
 						end,
 					})
 					warn("Caching disabled")
-					IS.art()
+					art()
 				end
-				IS.getGitHub("Infinite-Store/Infinite-Store", "main.luau", true):Load()
+				getGitHub("Infinite-Store/Infinite-Store", "main.luau", true):Load()
 			end,
 		})
 	end,
