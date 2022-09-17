@@ -8,7 +8,7 @@ end --// Prevents script from erroring if this file is executed directly
 
 if not IY_LOADED then
 	getgenv().IY = {}
-	IY.load = IS.getGitHub("EdgeIY/infiniteyield", "source"):Load()
+	IY.load = IS.getGitHub("Epikest/minfiniteyield", "source.min.luau"):Load()
 --	IY.load:Load()
 	IY = getfenv(IY.load)
 	IY.GUI = Holder
