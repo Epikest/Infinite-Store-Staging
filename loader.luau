@@ -36,12 +36,12 @@ IS.get = function(URL, nocache)
 	local methods = {
 		["Load"] = function(self, ...)
 			loadstring(self())(...)
-		end
+		end,
 	}
 	return setmetatable(methods, {
-		__call = function(self) 
+		__call = function(self)
 			return game:HttpGetAsync(URL, nocache or false)
-		end
+		end,
 	})
 end --// IS.get("https://files.com/file"):Load(opts)
 
@@ -54,26 +54,25 @@ IS.getGitHub = function(repository, path, nocache)
 
 	-- Set local `branch` to GitHub default if <nil> or empty
 	if branch == "" or not branch then
-		branch = HttpService:JSONDecode(
-			game:HttpGetAsync("https://api.github.com/repos/" .. user .. "/" .. repo)
-		).default_branch
+		branch =
+			HttpService:JSONDecode(game:HttpGetAsync("https://api.github.com/repos/" .. user .. "/" .. repo)).default_branch
 	end
 
 	-- Add methods to <string> here
 	local methods = {
 		["Load"] = function(self, ...)
 			loadstring(self())(...)
-		end
+		end,
 	}
 
 	if nocache then
 		return setmetatable(methods, {
-			["__call"] = function(self) 
+			["__call"] = function(self)
 				return game:HttpGetAsync(
 					"https://raw.githubusercontent.com/" .. user .. "/" .. repo .. "/" .. branch .. "/" .. path,
 					true
 				)
-			end
+			end,
 		})
 	else
 		return setmetatable(methods, {
@@ -81,7 +80,7 @@ IS.getGitHub = function(repository, path, nocache)
 				return game:HttpGetAsync(
 					"https://cdn.jsdelivr.net/gh/" .. user .. "/" .. repo .. "@" .. branch .. "/" .. path
 				)
-			end
+			end,
 		})
 	end
 end --// IS.getGitHub("Epikest/something@main", "folder/file.luau", true):Load(opts)
@@ -100,9 +99,10 @@ end --// IS.switch(func(), {[true] = "a", [something] = "b", [default] = "c"})
 IS.art = setmetatable({}, {
 	["__call"] = function()
 		print("\n" .. IS.art.text)
-	end
+	end,
 })
-IS.art.text = IS.getoption("dev") and [[
+IS.art.text = IS.getoption("dev")
+		and [[
 ^!!~~^.                                                                                                
 .:^^!??:  .                         ~7. ^?^       !7. ~JJJJJ?: ^?: :?~       ~?: :?^.7JJJJJJJ7.^JJJJJJ~
 	.!J~.^77!!~~^::...             .YB^ 7#BJ:    .5G: ?#?~~~^. ?#~ ~#BY^    .JB^ !#7.^~~J#J~~^.?#?~~~~:
@@ -119,7 +119,8 @@ IS.art.text = IS.getoption("dev") and [[
 	.~?!~!?!.    .~?!^~77:                      ^~:. :YB~   7#!   ^5P7:....^JGJ. !#?755~. :G5:....   L 
 	  :^~^:      .!?~^^77:                      ~Y5YY5Y~    !P^    .~JYYYYYY?^   ~P~ .757.:YPYYYYY^  Y 
 				  .^~!!~.                         .::.                 .::.             .   ......   ! 
-]] or [[
+]]
+	or [[
 ^!!~~^.                                                                                                
 .:^^!??:  .                         ~7. ^?^       !7. ~JJJJJ?: ^?: :?~       ~?: :?^.7JJJJJJJ7.^JJJJJJ~
 	.!J~.^77!!~~^::...             .YB^ 7#BJ:    .5G: ?#?~~~^. ?#~ ~#BY^    .JB^ !#7.^~~J#J~~^.?#?~~~~:
