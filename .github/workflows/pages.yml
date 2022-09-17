@@ -31,14 +31,12 @@ jobs:
         sed -i '1s/^/--\[\=[/' index.html
         rm loader.min.luau darklua darklua-linux.zip markdown2html-converter
 
-    - uses: peter-evans/create-pull-request@v4
+    - uses: EndBug/add-and-commit@v9
       if: ${{ success() || failure() }}
       with:
-        commit-message: Generate Pages from Markdown
-        committer: GitHub Actions <actions@github.com>
-        title: Generate Pages from Markdown
-        branch: generate-pages
-        delete-branch: true
+        message: Generate Pages from Markdown
+        author_name: GitHub Actions
+        author_email: actions@github.com
 
   publish:
     needs: convert
