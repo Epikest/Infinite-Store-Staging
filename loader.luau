@@ -2,11 +2,11 @@
 
 local args = ... or "" --// loadstring(loader.luau)(...)
 getgenv().IS = {}
-getgenv().IS.options = string.split(args, " ")
+IS.options = string.split(args, " ")
 
-getgenv().IS.YAML = getgenv().IS.loadGitHub("api7/lua-tinyyaml", "tinyyaml.lua")
-getgenv().IS.SynV3 = syn and DrawingImmediate
-getgenv().IS.hUI = get_hidden_gui or gethui
+IS.YAML = IS.loadGitHub("api7/lua-tinyyaml", "tinyyaml.lua")
+IS.SynV3 = syn and DrawingImmediate
+IS.hUI = get_hidden_gui or gethui
 
 for _, service in ipairs(game:GetChildren()) do
 	local success, result = pcall(function()
@@ -14,7 +14,7 @@ for _, service in ipairs(game:GetChildren()) do
 	end)
 end --// Service:Method()
 
-getgenv().IS.validate = function(chunk)
+IS.validate = function(chunk)
 	local func, err = loadstring(chunk) --// Compile chunk and store return values
 	if not func then
 		warn(err)
@@ -23,7 +23,7 @@ getgenv().IS.validate = function(chunk)
 	end
 end --// IS.validate("print(1)") --> true
 
-getgenv().IS.validateLoad = function(chunk, ...)
+IS.validateLoad = function(chunk, ...)
 	local func, err = loadstring(chunk)
 	if not func then
 		warn(err)
@@ -32,7 +32,7 @@ getgenv().IS.validateLoad = function(chunk, ...)
 	end
 end --// IS.validateLoad("print(args)", "1", "2") --> 1, 2
 
-getgenv().IS.get = function(URL, nocache)
+IS.get = function(URL, nocache)
 	local methods = {
 		["Load"] = function(self, ...)
 			loadstring(self())(...)
@@ -45,7 +45,7 @@ getgenv().IS.get = function(URL, nocache)
 	})
 end --// IS.get("https://files.com/file"):Load(opts)
 
-getgenv().IS.getGitHub = function(repository, path, nocache)
+IS.getGitHub = function(repository, path, nocache)
 	local user, repo, branch = string.match(repository, "([^/]+)/([^@]+)@?(.*)")
 	--> "User/Repository?@branch"
 
@@ -86,23 +86,23 @@ getgenv().IS.getGitHub = function(repository, path, nocache)
 	end
 end --// IS.getGitHub("Epikest/something@main", "folder/file.luau", true):Load(opts)
 
-getgenv().IS.getoption = function(option)
+IS.getoption = function(option)
 	-- Convert table.find result to boolean
 	return not (not table.find(IS.options, option))
 end --// IS.getoption("dev") --> true
 
-getgenv().IS.switch = function(case, cases)
+IS.switch = function(case, cases)
 	return (cases[case] and ((typeof(cases[case]) == "function" and cases[case]()) or cases[case]))
 		or (typeof(cases[default]) == "function" and cases[default]())
 		or cases[default]
 end --// IS.switch(func(), {[true] = "a", [something] = "b", [default] = "c"})
 
-getgenv().IS.art = setmetatable({}, {
+IS.art = setmetatable({}, {
 	["__call"] = function()
 		print("\n" .. IS.art.text)
 	end
 }
-getgenv().IS.art.text = IS.getoption("dev") and [[
+IS.art.text = IS.getoption("dev") and [[
 ^!!~~^.                                                                                                
 .:^^!??:  .                         ~7. ^?^       !7. ~JJJJJ?: ^?: :?~       ~?: :?^.7JJJJJJJ7.^JJJJJJ~
 	.!J~.^77!!~~^::...             .YB^ 7#BJ:    .5G: ?#?~~~^. ?#~ ~#BY^    .JB^ !#7.^~~J#J~~^.?#?~~~~:
