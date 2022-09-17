@@ -101,7 +101,7 @@ IS.art = setmetatable({}, {
 	["__call"] = function()
 		print("\n" .. IS.art.text)
 	end
-}
+})
 IS.art.text = IS.getoption("dev") and [[
 ^!!~~^.                                                                                                
 .:^^!??:  .                         ~7. ^?^       !7. ~JJJJJ?: ^?: :?~       ~?: :?^.7JJJJJJJ7.^JJJJJJ~
