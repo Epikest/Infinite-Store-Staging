@@ -160,7 +160,7 @@ switch(getoption("dev"), {
 					warn("Caching enabled")
 					art()
 				end
-				getGitHub("Infinite-Store/Nightly-Store", "main.luau"):Load()
+				--	getGitHub("Infinite-Store/Nightly-Store", "main.luau"):Load()
 			end,
 			[false] = function()
 				if isfile(".logservicedetected") then
@@ -180,7 +180,7 @@ switch(getoption("dev"), {
 					warn("Caching disabled")
 					art()
 				end
-				getGitHub("Infinite-Store/Nightly-Store", "main.luau", true):Load()
+				--	getGitHub("Infinite-Store/Nightly-Store", "main.luau", true):Load()
 			end,
 		})
 	end,
@@ -204,7 +204,7 @@ switch(getoption("dev"), {
 					warn("Caching enabled")
 					art()
 				end
-				getGitHub("Infinite-Store/Infinite-Store", "main.luau"):Load()
+				getGitHub("Epikest/Infinite-Store-Staging", "main.luau"):Load()
 			end,
 			[false] = function()
 				if isfile(".logservicedetected") then
@@ -224,7 +224,7 @@ switch(getoption("dev"), {
 					warn("Caching disabled")
 					art()
 				end
-				getGitHub("Infinite-Store/Infinite-Store", "main.luau", true):Load()
+				getGitHub("Epikest/Infinite-Store-Staging", "main.luau", true):Load()
 			end,
 		})
 	end,
