@@ -4,7 +4,6 @@ local args = ... or "" --// loadstring(loader.luau)(...)
 getgenv().IS = {}
 IS.options = string.split(args, " ")
 
-IS.YAML = IS.loadGitHub("api7/lua-tinyyaml", "tinyyaml.lua")
 IS.SynV3 = syn and DrawingImmediate
 IS.hUI = get_hidden_gui or gethui
 

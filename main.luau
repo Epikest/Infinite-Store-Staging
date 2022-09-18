@@ -31,6 +31,7 @@ if IS_LOADED then
 end
 getgenv().IS_LOADED = true
 
+IS.YAML = IS.loadGitHub("api7/lua-tinyyaml", "tinyyaml.lua")
 IS.Properties = {
 	["Version"] = "1.3.5",
 	["Invite"] = "dubhsUGcZe",
